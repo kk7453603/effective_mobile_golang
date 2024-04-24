@@ -5,8 +5,6 @@ import (
 	"log"
 	"os"
 
-	"log"
-
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 
@@ -37,16 +35,17 @@ func New() *SqlHandler {
 func (h *SqlHandler) Migrate() error {
 	m, err := migrate.New(os.Getenv("DB_MIGRATIONS_PATH"), h.dsn+"?sslmode=disable")
 	if err != nil {
-		log.Fatal(err) // добавить логгер
+		log.Fatal("migrate1 " + err.Error()) // добавить логгер
 		return err
 	}
 	if err := m.Up(); err != nil {
-		log.Fatal(err) // добавить логгер
+		log.Fatal("migrate2 " + err.Error()) // добавить логгер
 		return err
 	}
 	return nil
 }
 
+/*
 func (h *SqlHandler) AddUser(user_name string, user_pass string) error {
 	_, err := h.DB.Exec(context.Background(), "INSERT INTO users(name,password) VALUES ($1,$2)", user_name, user_pass)
 	if err != nil {
@@ -73,3 +72,4 @@ func (h *SqlHandler) GetUsers() ([]model.User, error) {
 	}
 	return users, nil
 }
+*/
