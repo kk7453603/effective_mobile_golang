@@ -9,7 +9,6 @@ import (
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 	"github.com/kk7453603/effective_mobile_golang/internal/models"
@@ -78,25 +77,9 @@ func (h *SqlHandler) GetCarByRegNum(regnum string) models.Car {
 	return *car
 }
 
-func (h *SqlHandler) AddCar(RegNums []string) {
-	// добавить проверку на уникальность
-	query := "INSERT INTO cars (regnum) VALUES ($1);"
-	tx, err := h.DB.BeginTx(context.TODO(), pgx.TxOptions{})
-	if err != nil {
-		h.elog.Fatal(err)
-	}
-	defer tx.Rollback(context.TODO())
-	for _, num := range RegNums {
-		_, err := tx.Exec(context.TODO(), query, num)
-		if err != nil {
-			h.elog.Fatal(err)
-			tx.Rollback(context.TODO())
-			break
-		}
+func (h *SqlHandler) AddCar(RegNum string) {
+	// Mock на внешнее API
 
-	}
-	err = tx.Commit(context.TODO())
-	if err != nil {
-		h.elog.Fatal(err)
-	}
+	//query := "INSERT INTO cars (regnum) VALUES ($1);"
+
 }
