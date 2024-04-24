@@ -1,7 +1,6 @@
 package models
 
 type Car struct {
-	ID     uint64 `json:"id"`
 	RegNum string `json:"regNum"`
 	Mark   string `json:"mark"`
 	Model  string `json:"model"`
