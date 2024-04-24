@@ -2,74 +2,61 @@ package repository
 
 import (
 	"context"
-	"log"
 	"os"
-
-	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/joho/godotenv"
 
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/joho/godotenv"
+	"github.com/kk7453603/effective_mobile_golang/internal/models"
+	"github.com/labstack/echo/v4"
 )
 
 type SqlHandler struct {
-	DB  *pgxpool.Pool
-	dsn string
+	DB   *pgxpool.Pool
+	elog *echo.Echo //немного не "чистая архитектура"
+	dsn  string
 }
 
-func New() *SqlHandler {
+func New(e *echo.Echo) *SqlHandler {
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		e.Logger.Errorf(".env load error: %v", err)
 	}
 	dsn := "postgres://" + os.Getenv("DB_USER") + ":" + os.Getenv("DB_PASSWORD") + "@" + os.Getenv("DB_HOST") + ":" + os.Getenv("DB_PORT") + "/" + os.Getenv("DB_NAME")
-	log.Println(dsn)
 	pool, err := pgxpool.New(context.Background(), dsn)
 	if err != nil {
-		log.Fatal(err)
+		e.Logger.Errorf("SqlHandler init error: %v", err)
 	}
-	return &SqlHandler{DB: pool, dsn: dsn}
+	return &SqlHandler{DB: pool, dsn: dsn, elog: e}
 }
 
-func (h *SqlHandler) Migrate() error {
+func (h *SqlHandler) Migrate() {
 	m, err := migrate.New(os.Getenv("DB_MIGRATIONS_PATH"), h.dsn+"?sslmode=disable")
 	if err != nil {
-		log.Fatal("migrate1 " + err.Error()) // добавить логгер
-		return err
+		h.elog.Logger.Errorf("migration error: %v", err)
 	}
 	if err := m.Up(); err != nil {
-		log.Fatal("migrate2 " + err.Error()) // добавить логгер
-		return err
+		h.elog.Logger.Errorf("migration error: %v", err)
 	}
-	return nil
 }
 
-/*
-func (h *SqlHandler) AddUser(user_name string, user_pass string) error {
-	_, err := h.DB.Exec(context.Background(), "INSERT INTO users(name,password) VALUES ($1,$2)", user_name, user_pass)
-	if err != nil {
-		log.Fatal(err)
-		return err
-	}
-	return nil
-}
+func (h *SqlHandler) GetAllCars() []models.Car {
+	var cars []models.Car = make([]models.Car, 0, 10)
+	car := &models.Car{}
 
-func (h *SqlHandler) GetUsers() ([]model.User, error) {
-	var users []model.User
-	rows, err := h.DB.Query(context.Background(), "SELECT * FROM users")
+	rows, err := h.DB.Query(context.Background(), "SELECT * FROM cars;")
 	if err != nil {
-		log.Fatal(err)
-		return nil, err
+		h.elog.Logger.Fatal(err)
 	}
 	for rows.Next() {
-		var user model.User
-		err := rows.Scan(&user)
+
+		err := rows.Scan(&car)
 		if err != nil {
-			return nil, err
+			h.elog.Logger.Fatal(err)
 		}
-		users = append(users, user)
+		cars = append(cars, *car)
 	}
-	return users, nil
+	return cars
 }
-*/

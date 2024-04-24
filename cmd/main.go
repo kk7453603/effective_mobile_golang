@@ -7,7 +7,7 @@ import (
 
 func main() {
 	e := echo.New()
-	sql_handler := repository.New()
+	sql_handler := repository.New(e)
 	err := sql_handler.Migrate()
 	if err != nil {
 		e.Logger.Fatal(err)
