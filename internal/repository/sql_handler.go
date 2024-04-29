@@ -83,3 +83,20 @@ func (h *SqlHandler) AddCar(RegNum string) {
 	//query := "INSERT INTO cars (regnum) VALUES ($1);"
 
 }
+func (h *SqlHandler) RemoveCarById(RegNum string) error {
+	_, err := h.DB.Exec(context.Background(), "DELETE FROM cars WHERE regnum=$1", RegNum)
+	if err != nil {
+		h.elog.Fatal(err)
+		return err
+	}
+	return nil
+}
+
+func (h *SqlHandler) UpdateCar(RegNum string, Mark string, Model string, Owner uint64, Year string) error {
+	_, err := h.DB.Exec(context.Background(), "Update cars SET mark=$1, model=$2,", RegNum) //доделать
+	if err != nil {
+		h.elog.Fatal(err)
+		return err
+	}
+	return nil
+}
