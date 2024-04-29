@@ -1,11 +1,11 @@
 package models
 
 type Car struct {
-	RegNum string `json:"regNum" query:"regNum"`
-	Mark   string `json:"mark" query:"mark"`
-	Model  string `json:"model" query:"model"`
-	Owner  People `json:"people ,omitempty"`
-	Year   int    `json:"year ,omitempty"  query:"year"`
+	RegNum string `json:"regNum" query:"regNum" form:"regNum"`
+	Mark   string `json:"mark" query:"mark" form:"mark"`
+	Model  string `json:"model" query:"model" form:"model"`
+	Owner  People `json:"people ,omitempty" form:"people"`
+	Year   int    `json:"year ,omitempty"  query:"year" form:"year"`
 }
 
 type People struct {

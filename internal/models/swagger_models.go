@@ -23,3 +23,7 @@ type Response_Error struct {
 type Response_OK struct {
 	Status string `json:"status"`
 }
+
+type Request_Add_Cars struct {
+	RegNums []string `json:"regNums"`
+}
