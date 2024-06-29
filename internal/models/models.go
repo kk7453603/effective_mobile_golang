@@ -1,15 +1,21 @@
 package models
 
-type Car struct {
-	RegNum string `json:"regNum" query:"regNum" form:"regNum"`
-	Mark   string `json:"mark" query:"mark" form:"mark"`
-	Model  string `json:"model" query:"model" form:"model"`
-	Owner  People `json:"people ,omitempty" form:"people"`
-	Year   int    `json:"year ,omitempty"  query:"year" form:"year"`
+import "time"
+
+type Task struct {
+	ID        int       `json:"id"`
+	UserId    int       `json:"userid"`
+	TaskName  string    `json:"taskname"`
+	Content   string    `json:"content"`
+	StartTime time.Time `json:"startTime"`
+	EndTime   time.Time `json:"endTime"`
 }
 
-type People struct {
-	Name       string `json:"name"`
-	Surname    string `json:"surname"`
-	Patronymic string `json:"patronymic ,omitempty"`
+type User struct {
+	ID             int    `json:"id"`
+	PassportNumber string `json:"passportNumber"`
+	Surname        string `json:"surname"`
+	Name           string `json:"name"`
+	Patronymic     string `json:"patronymic"`
+	Address        string `json:"address"`
 }

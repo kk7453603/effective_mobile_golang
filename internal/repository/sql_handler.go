@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"reflect"
 
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
@@ -44,27 +45,64 @@ func (h *SqlHandler) Migrate() {
 	}
 }
 
-func (h *SqlHandler) GetAllCars(limit int) []models.Car {
+func (h *SqlHandler) GetAllCars(prep_query string, filterFields []string, limit int) ([]models.Car, error) {
 	var cars []models.Car = make([]models.Car, 0, 10)
-	var query string
-	if limit == 0 {
-		query = "SELECT owner,regnum,mark,model,year FROM cars;"
-	} else {
-		query = "SELECT owner,regnum,mark,model,year FROM cars LIMIT " + fmt.Sprintf("%d", limit) + ";"
-	}
+	query := fmt.Sprintf("SELECT %s FROM cars LIMIT %d;", prep_query, limit)
+	h.elog.Debug(query)
 	rows, err := h.DB.Query(context.Background(), query)
 	if err != nil {
 		h.elog.Fatal(err)
+		return nil, err
 	}
+	defer rows.Close()
+
+	var values []interface{}
 	for rows.Next() {
-		car := &models.Car{}
-		err := rows.Scan(&car.Owner, &car.RegNum, &car.Mark, &car.Model, &car.Year)
+		values = make([]interface{}, len(filterFields))
+		for i := range filterFields {
+			values[i] = new(interface{})
+		}
+		err := rows.Scan(values...)
 		if err != nil {
 			h.elog.Fatal(err)
+			return nil, err
 		}
-		cars = append(cars, *car)
+		car := models.Car{}
+		for i, columnName := range filterFields {
+			switch columnName {
+			case "regnum":
+				regNum, ok := values[i].(*string)
+				h.elog.Info(reflect.TypeOf(values[i]))
+				if ok {
+					h.elog.Info(regNum)
+					car.RegNum = *regNum
+				}
+
+			case "mark":
+				mark, ok := values[i].(*string)
+				if ok {
+					car.Mark = *mark
+				}
+
+			case "model":
+				model, ok := values[i].(*string)
+				if ok {
+					car.Model = *model
+				}
+
+			case "year":
+				year, ok := values[i].(*int)
+				if ok {
+					car.Year = *year
+				}
+			default:
+
+			}
+		}
+
+		cars = append(cars, car)
 	}
-	return cars
+	return cars, nil
 }
 
 func (h *SqlHandler) GetCarByRegNum(regnum string) models.Car {
@@ -77,11 +115,16 @@ func (h *SqlHandler) GetCarByRegNum(regnum string) models.Car {
 	return *car
 }
 
-func (h *SqlHandler) AddCar(RegNum string) {
+func (h *SqlHandler) AddCar(car models.Car) error {
 	// Mock на внешнее API
 
 	//query := "INSERT INTO cars (regnum) VALUES ($1);"
+	return nil
 
+}
+
+func (h *SqlHandler) AddUser(user models.People) error {
+	return nil
 }
 func (h *SqlHandler) RemoveCarById(RegNum string) error {
 	_, err := h.DB.Exec(context.Background(), "DELETE FROM cars WHERE regnum=$1", RegNum)
@@ -92,11 +135,14 @@ func (h *SqlHandler) RemoveCarById(RegNum string) error {
 	return nil
 }
 
-func (h *SqlHandler) UpdateCar(RegNum string, Mark string, Model string, Owner uint64, Year string) error {
-	_, err := h.DB.Exec(context.Background(), "Update cars SET mark=$1, model=$2,", RegNum) //доделать
-	if err != nil {
-		h.elog.Fatal(err)
-		return err
-	}
+func (h *SqlHandler) UpdateCar(car_fields string, owner_fileds string) error {
+	/*
+		_, err := h.DB.Exec(context.Background(), "Update cars SET mark=$1, model=$2,", RegNum) //доделать
+		if err != nil {
+			h.elog.Fatal(err)
+			return err
+		}
+	*/
 	return nil
+
 }

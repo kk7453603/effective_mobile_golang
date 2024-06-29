@@ -5,22 +5,33 @@ import (
 	"net/http/httptest"
 	"os"
 
+	"github.com/kk7453603/effective_mobile_golang/internal/delivery"
 	"github.com/kk7453603/effective_mobile_golang/internal/models"
 	"github.com/kk7453603/effective_mobile_golang/internal/repository"
+	"github.com/kk7453603/effective_mobile_golang/internal/service"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
+	"github.com/labstack/gommon/log"
 )
 
 func main() {
 	e := echo.New()
+	e.Debug = true
+	e.Logger.SetLevel(log.DEBUG)
+	e.Use(middleware.Logger())
+	g := e.Group("")
 	sql_handler := repository.New(e.Logger)
 	sql_handler.Migrate()
-
-	e.GET("/", func(c echo.Context) error {
-		test := "try"
-		sql_handler.AddCar(test)
-		return c.JSON(200, sql_handler.GetAllCars(0))
-	})
-
+	serv := service.New(sql_handler)
+	deliv := delivery.New(serv, e.Logger)
+	deliv.InitRoutes(g)
+	/*
+		e.GET("/", func(c echo.Context) error {
+			test := "try"
+			sql_handler.AddCar(test)
+			return c.JSON(200, sql_handler.GetAllCars(0))
+		})*/
+	// Mock API
 	e.GET("/info", func(c echo.Context) error {
 		regNum := c.QueryParam("regNum")
 		if regNum == "" {
