@@ -19,3 +19,12 @@ type User struct {
 	Patronymic     string `json:"patronymic"`
 	Address        string `json:"address"`
 }
+
+type TaskReport struct {
+	TaskName  string    `json:"taskname"`
+	Content   string    `json:"content"`
+	Hours     int       `json:"hours"`
+	Minutes   int       `json:"minutes"`
+	StartTime time.Time `json:"starttime"`
+	EndTime   time.Time `json:"endtime"`
+}

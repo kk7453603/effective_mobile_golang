@@ -3,6 +3,7 @@ package delivery
 import (
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/kk7453603/effective_mobile_golang/internal/models"
 	"github.com/labstack/echo/v4"
@@ -10,7 +11,7 @@ import (
 
 type Service interface {
 	GetAllUsers(filter map[string]string, limit int, page int) ([]models.User, error)
-	GetUserStatus(passportNumber string) error
+	GetUserTaskStatus(passportNumber string, startDate time.Time, endDate time.Time) ([]models.TaskReport, error)
 	StartUserTimer(passportNumber string) error
 	StopUserTimer(passportNumber string) error
 	RemoveUser(passportNumber string) error
@@ -55,4 +56,32 @@ func (d *Delivery) InitRoutes(g *echo.Group) {
 		return c.JSONPretty(http.StatusOK, users, "  ")
 	})
 
+	g.GET("/get_user", func(c echo.Context) error {
+		passportNumber := c.QueryParam("passport_number")
+		if passportNumber == "" {
+			return c.JSON(http.StatusBadRequest, map[string]string{"error": "passport_number parameter is required"})
+		}
+
+		startDateStr := c.QueryParam("start_date")
+		endDateStr := c.QueryParam("end_date")
+
+		startDate, err := time.Parse("2006-01-02", startDateStr)
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid start_date parameter"})
+		}
+
+		endDate, err := time.Parse("2006-01-02", endDateStr)
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid end_date parameter"})
+		}
+
+		taskReports, err := d.serv.GetUserTaskStatus(passportNumber, startDate, endDate)
+		if err != nil {
+			d.logger.Errorf("delivery /get_user_task_report error: %s", err)
+			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get user task report"})
+		}
+
+		d.logger.Debugf("tasks: %v", taskReports)
+		return c.JSONPretty(http.StatusOK, taskReports, "  ")
+	})
 }

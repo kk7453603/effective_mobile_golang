@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"os"
+	"time"
 
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
@@ -63,4 +64,34 @@ func (h *SqlHandler) GetUsers(query string, args []interface{}) ([]models.User, 
 		h.elog.Debugf("users: %v", users)
 	}
 	return users, nil
+}
+
+func (h *SqlHandler) GetUserTaskReport(passportNumber string, startDate, endDate time.Time) ([]models.TaskReport, error) {
+	query := `
+		SELECT t.taskname, t.content, 
+		       EXTRACT(EPOCH FROM (t.endtime - t.starttime)) / 3600 AS hours, 
+		       MOD(EXTRACT(EPOCH FROM (t.endtime - t.starttime)) / 60, 60) AS minutes,
+		       t.starttime, t.endtime
+		FROM tasks t
+		JOIN users u ON t.userid = u.id
+		WHERE u.passportNumber = $1 AND t.starttime >= $2 AND t.endtime <= $3
+		ORDER BY EXTRACT(EPOCH FROM (t.endtime - t.starttime)) DESC
+	`
+	rows, err := h.DB.Query(context.Background(), query, passportNumber, startDate, endDate)
+	if err != nil {
+		h.elog.Errorf("error repository GetUserTaskReport: %s", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	var taskReports []models.TaskReport
+	for rows.Next() {
+		var report models.TaskReport
+		if err := rows.Scan(&report.TaskName, &report.Content, &report.Hours, &report.Minutes, &report.StartTime, &report.EndTime); err != nil {
+			h.elog.Errorf("error repository GetUserTaskReport: %s", err)
+			return nil, err
+		}
+		taskReports = append(taskReports, report)
+	}
+	return taskReports, nil
 }

@@ -1,0 +1,4 @@
+BEGIN;
+DELETE FROM tasks;
+DELETE FROM users;
+COMMIT;

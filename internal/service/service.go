@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/kk7453603/effective_mobile_golang/internal/models"
 	"github.com/labstack/echo/v4"
@@ -9,6 +10,7 @@ import (
 
 type Repository interface {
 	GetUsers(query string, args []interface{}) ([]models.User, error)
+	GetUserTaskReport(passportNumber string, startDate time.Time, endDate time.Time) ([]models.TaskReport, error)
 }
 
 type Service struct {
@@ -27,8 +29,13 @@ func (s *Service) EditUser(passportNumber string) error {
 }
 
 // GetUserStatus implements delivery.Service.
-func (s *Service) GetUserStatus(passportNumber string) error {
-	return nil
+func (s *Service) GetUserTaskStatus(passportNumber string, startDate time.Time, endDate time.Time) ([]models.TaskReport, error) {
+	taskReports, err := s.repo.GetUserTaskReport(passportNumber, startDate, endDate)
+	if err != nil {
+		s.elog.Errorf("service GetUserTaskReport error: %s", err)
+		return nil, err
+	}
+	return taskReports, nil
 }
 
 // RemoveUser implements delivery.Service.
