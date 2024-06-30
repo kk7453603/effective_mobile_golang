@@ -9,7 +9,7 @@ import (
 )
 
 type Service interface {
-	GetAllUsers(filter map[string]string, limit int) ([]models.User, error)
+	GetAllUsers(filter map[string]string, limit int, page int) ([]models.User, error)
 	GetUserStatus(passportNumber string) error
 	StartUserTimer(passportNumber string) error
 	StopUserTimer(passportNumber string) error
@@ -37,15 +37,21 @@ func (d *Delivery) InitRoutes(g *echo.Group) {
 			"patronymic":     c.QueryParam("patronymic"),
 			"address":        c.QueryParam("address"),
 		}
+		page, err := strconv.Atoi(c.QueryParam("page"))
+		if err != nil {
+			c.JSON(http.StatusBadRequest, "page value error: "+err.Error())
+		}
 		limit, err := strconv.Atoi(c.QueryParam("limit"))
 		if err != nil {
 			c.JSON(http.StatusBadRequest, "limit value error: "+err.Error())
 		}
 
-		users, err := d.serv.GetAllUsers(filter, limit)
+		users, err := d.serv.GetAllUsers(filter, limit, page)
 		if err != nil {
-			d.logger.Debugf("User delivery: %s", err)
+			d.logger.Errorf("delivery /get_users error:%s", err)
+			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get users"})
 		}
+		d.logger.Debugf("users: %v", users)
 		return c.JSONPretty(http.StatusOK, users, "  ")
 	})
 
