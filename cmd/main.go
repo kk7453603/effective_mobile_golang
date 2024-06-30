@@ -3,21 +3,44 @@ package main
 import (
 	"os"
 
+	"github.com/joho/godotenv"
+	_ "github.com/kk7453603/effective_mobile_golang/docs"
 	"github.com/kk7453603/effective_mobile_golang/internal/delivery"
 	"github.com/kk7453603/effective_mobile_golang/internal/repository"
 	"github.com/kk7453603/effective_mobile_golang/internal/service"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/labstack/gommon/log"
+	echoSwagger "github.com/swaggo/echo-swagger"
 )
 
-//"github.com/kk7453603/effective_mobile_golang/internal/models"
+// @title Time Tracker API
+// @version 1.0
+// @description This is a time tracker server.
+// @termsOfService http://swagger.io/terms/
 
+// @contact.name API Support
+// @contact.url http://www.swagger.io/support
+// @contact.email support@swagger.io
+
+// @license.name Apache 2.0
+// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
+
+// @host localhost:8000
+// @BasePath /
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatalf("godotenv error: %v", err)
+	}
 	e := echo.New()
 	e.Debug = true
 	e.Logger.SetLevel(log.DEBUG)
 	e.Use(middleware.Logger())
+	e.Use(middleware.Recover())
+	// Swagger documentation route
+	e.GET("/swagger/*", echoSwagger.WrapHandler)
+
 	g := e.Group("")
 	sql_handler := repository.New(e.Logger)
 	sql_handler.Migrate()

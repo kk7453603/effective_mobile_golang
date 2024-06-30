@@ -10,22 +10,17 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/joho/godotenv"
 	"github.com/kk7453603/effective_mobile_golang/internal/models"
 	"github.com/labstack/echo/v4"
 )
 
 type SqlHandler struct {
 	DB   *pgxpool.Pool
-	elog echo.Logger //немного не "чистая архитектура"
+	elog echo.Logger
 	dsn  string
 }
 
 func New(e echo.Logger) *SqlHandler {
-	err := godotenv.Load()
-	if err != nil {
-		e.Errorf(".env load error: %v", err)
-	}
 	dsn := "postgres://" + os.Getenv("DB_USER") + ":" + os.Getenv("DB_PASSWORD") + "@" + os.Getenv("DB_HOST") + ":" + os.Getenv("DB_PORT") + "/" + os.Getenv("DB_NAME")
 	pool, err := pgxpool.New(context.Background(), dsn)
 	if err != nil {

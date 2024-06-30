@@ -30,140 +30,228 @@ func New(s Service, lg echo.Logger) *Delivery {
 
 func (d *Delivery) InitRoutes(g *echo.Group) {
 
-	g.GET("/get_users", func(c echo.Context) error {
-		filter := map[string]string{
-			"passportNumber": c.QueryParam("passportNumber"),
-			"surname":        c.QueryParam("surname"),
-			"name":           c.QueryParam("name"),
-			"patronymic":     c.QueryParam("patronymic"),
-			"address":        c.QueryParam("address"),
-		}
-		page, err := strconv.Atoi(c.QueryParam("page"))
-		if err != nil {
-			c.JSON(http.StatusBadRequest, map[string]string{"error": "Failed to get page value"})
-		}
-		limit, err := strconv.Atoi(c.QueryParam("limit"))
-		if err != nil {
-			c.JSON(http.StatusBadRequest, map[string]string{"error": "Failed to get limit value"})
-		}
+	g.GET("/get_users", d.GetUsers)
 
-		users, err := d.serv.GetAllUsers(filter, limit, page)
-		if err != nil {
-			d.logger.Errorf("delivery /get_users error:%s", err)
-			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get users"})
-		}
-		d.logger.Debugf("users: %v", users)
-		return c.JSONPretty(http.StatusOK, users, "  ")
-	})
+	g.GET("/get_user", d.GetUserTasks)
 
-	g.GET("/get_user", func(c echo.Context) error {
-		passportNumber := c.QueryParam("passport_number")
-		if passportNumber == "" {
-			return c.JSON(http.StatusBadRequest, map[string]string{"error": "passport_number parameter is required"})
-		}
+	g.POST("/start_user_task", d.StartUserTask)
 
-		startDateStr := c.QueryParam("start_date")
-		endDateStr := c.QueryParam("end_date")
+	g.POST("/stop_user_task", d.StopUserTask)
 
-		startDate, err := time.Parse("2006-01-02", startDateStr)
-		if err != nil {
-			return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid start_date parameter"})
-		}
+	g.POST("/add_user", d.AddUser)
 
-		endDate, err := time.Parse("2006-01-02", endDateStr)
-		if err != nil {
-			return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid end_date parameter"})
-		}
+	g.POST("/edit_user", d.EditUser)
 
-		taskReports, err := d.serv.GetUserTaskStatus(passportNumber, startDate, endDate)
-		if err != nil {
-			d.logger.Errorf("delivery /get_user_task_report error: %s", err)
-			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get user task report"})
-		}
+	g.POST("/delete_user", d.DeleteUser)
+}
 
-		d.logger.Debugf("tasks: %v", taskReports)
-		return c.JSONPretty(http.StatusOK, taskReports, "  ")
-	})
+// @Summary		Get all users
+// @Description	Get all users with optional filters
+// @Accept			json
+// @Produce		json
+// @Param			passportNumber	query		string	false	"Passport Number"
+// @Param			surname			query		string	false	"Surname"
+// @Param			name			query		string	false	"Name"
+// @Param			patronymic		query		string	false	"Patronymic"
+// @Param			address			query		string	false	"Address"
+// @Param			page			query		int		false	"Page"
+// @Param			limit			query		int		false	"Limit"
+// @Success		200				{array}		models.User
+// @Failure		400				{object}	map[string]string
+// @Failure		500				{object}	map[string]string
+// @Router			/get_users [get]
+func (d *Delivery) GetUsers(c echo.Context) error {
+	filter := map[string]string{
+		"passportNumber": c.QueryParam("passportNumber"),
+		"surname":        c.QueryParam("surname"),
+		"name":           c.QueryParam("name"),
+		"patronymic":     c.QueryParam("patronymic"),
+		"address":        c.QueryParam("address"),
+	}
+	page, err := strconv.Atoi(c.QueryParam("page"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Failed to get page value"})
+	}
+	limit, err := strconv.Atoi(c.QueryParam("limit"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Failed to get limit value"})
+	}
 
-	g.POST("/start_user_task", func(c echo.Context) error {
-		passportNumber := c.FormValue("passport_number")
-		taskName := c.FormValue("task_name")
-		content := c.FormValue("content")
-		if passportNumber == "" || taskName == "" || content == "" {
-			return c.JSON(http.StatusBadRequest, map[string]string{"error": "passport_number, task_name, and content are required"})
-		}
+	users, err := d.serv.GetAllUsers(filter, limit, page)
+	if err != nil {
+		d.logger.Errorf("delivery /get_users error:%s", err)
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get users"})
+	}
+	d.logger.Debugf("users: %v", users)
+	return c.JSONPretty(http.StatusOK, users, "  ")
+}
 
-		err := d.serv.StartUserTimer(passportNumber, taskName, content)
-		if err != nil {
-			d.logger.Errorf("delivery /start_user_task error: %s", err)
-			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start user task"})
-		}
+// @Summary		Get user tasks
+// @Description	Get user tasks for a specified period
+// @Accept			json
+// @Produce		json
+// @Param			passportNumber	query		string	true	"Passport Number"
+// @Param			startDate		query		string	true	"Start Date"	Format(date)
+// @Param			endDate			query		string	true	"End Date"		Format(date)
+// @Success		200				{array}		models.TaskReport
+// @Failure		400				{object}	map[string]string
+// @Failure		500				{object}	map[string]string
+// @Router			/get_user [get]
+func (d *Delivery) GetUserTasks(c echo.Context) error {
+	passportNumber := c.QueryParam("passport_number")
+	if passportNumber == "" {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "passport_number parameter is required"})
+	}
 
-		return c.JSON(http.StatusOK, map[string]string{"status": "Task started"})
-	})
+	startDateStr := c.QueryParam("start_date")
+	endDateStr := c.QueryParam("end_date")
 
-	g.POST("/stop_user_task", func(c echo.Context) error {
-		passportNumber := c.FormValue("passport_number")
-		taskName := c.FormValue("task_name")
-		if passportNumber == "" || taskName == "" {
-			return c.JSON(http.StatusBadRequest, map[string]string{"error": "passport_number and task_name are required"})
-		}
+	startDate, err := time.Parse("2006-01-02", startDateStr)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid start_date parameter"})
+	}
 
-		err := d.serv.StopUserTimer(passportNumber, taskName)
-		if err != nil {
-			d.logger.Errorf("delivery /stop_user_task error: %s", err)
-			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to stop user task"})
-		}
+	endDate, err := time.Parse("2006-01-02", endDateStr)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid end_date parameter"})
+	}
 
-		return c.JSON(http.StatusOK, map[string]string{"status": "Task stopped"})
-	})
+	taskReports, err := d.serv.GetUserTaskStatus(passportNumber, startDate, endDate)
+	if err != nil {
+		d.logger.Errorf("delivery /get_user_task_report error: %s", err)
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get user task report"})
+	}
 
-	g.POST("/add_user", func(c echo.Context) error {
-		passportNumber := c.FormValue("passport_number")
+	d.logger.Debugf("tasks: %v", taskReports)
+	return c.JSONPretty(http.StatusOK, taskReports, "  ")
+}
 
-		err := d.serv.AddUser(passportNumber)
-		if err != nil {
-			d.logger.Errorf("delivery /add_user error: %s", err)
-			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to add user"})
-		}
+// @Summary		Start user task
+// @Description	Start a new task for a user
+// @Accept			application/x-www-form-urlencoded
+// @Produce		json
+// @Param			passportNumber	formData	string	true	"Passport Number"
+// @Param			taskName		formData	string	true	"Task Name"
+// @Param			content			formData	string	true	"Content"
+// @Success		200				{object}	map[string]string
+// @Failure		400				{object}	map[string]string
+// @Failure		500				{object}	map[string]string
+// @Router			/start_user_task [post]
+func (d *Delivery) StartUserTask(c echo.Context) error {
+	passportNumber := c.FormValue("passport_number")
+	taskName := c.FormValue("task_name")
+	content := c.FormValue("content")
+	if passportNumber == "" || taskName == "" || content == "" {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "passport_number, task_name, and content are required"})
+	}
 
-		return c.JSON(http.StatusOK, map[string]string{"status": "User added"})
-	})
+	err := d.serv.StartUserTimer(passportNumber, taskName, content)
+	if err != nil {
+		d.logger.Errorf("delivery /start_user_task error: %s", err)
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start user task"})
+	}
 
-	g.POST("/edit_user", func(c echo.Context) error {
-		user := models.Response_User{
-			PassportNumber: c.FormValue("passport_number"),
-			Surname:        c.FormValue("surname"),
-			Name:           c.FormValue("name"),
-			Patronymic:     c.FormValue("patronymic"),
-			Address:        c.FormValue("address"),
-		}
-		d.logger.Debugf("user data: %v", user)
-		//if err := c.Bind(&user); err != nil {
-		//	return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request payload"})
-		//}
+	return c.JSON(http.StatusOK, map[string]string{"status": "Task started"})
+}
 
-		err := d.serv.EditUser(user.PassportNumber, user.Surname, user.Name, user.Patronymic, user.Address)
-		if err != nil {
-			d.logger.Errorf("delivery /edit_user error: %s", err)
-			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to edit user"})
-		}
+// @Summary		Stop user task
+// @Description	Stop an ongoing task for a user
+// @Accept			application/x-www-form-urlencoded
+// @Produce		json
+// @Param			passportNumber	formData	string	true	"Passport Number"
+// @Param			taskName		formData	string	true	"Task Name"
+// @Success		200				{object}	map[string]string
+// @Failure		400				{object}	map[string]string
+// @Failure		500				{object}	map[string]string
+// @Router			/stop_user_task [post]
+func (d *Delivery) StopUserTask(c echo.Context) error {
+	passportNumber := c.FormValue("passport_number")
+	taskName := c.FormValue("task_name")
+	if passportNumber == "" || taskName == "" {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "passport_number and task_name are required"})
+	}
 
-		return c.JSON(http.StatusOK, map[string]string{"status": "User updated"})
-	})
+	err := d.serv.StopUserTimer(passportNumber, taskName)
+	if err != nil {
+		d.logger.Errorf("delivery /stop_user_task error: %s", err)
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to stop user task"})
+	}
 
-	g.POST("/delete_user", func(c echo.Context) error {
-		passportNumber := c.FormValue("passport_number")
-		if passportNumber == "" {
-			return c.JSON(http.StatusBadRequest, map[string]string{"error": "passportNumber parameter is required"})
-		}
+	return c.JSON(http.StatusOK, map[string]string{"status": "Task stopped"})
+}
 
-		err := d.serv.RemoveUser(passportNumber)
-		if err != nil {
-			d.logger.Errorf("delivery /delete_user error: %s", err)
-			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete user"})
-		}
+// @Summary		Add new user
+// @Description	Add a new user by passport number
+// @Accept			application/x-www-form-urlencoded
+// @Produce		json
+// @Param			passportNumber	formData	string	true	"Passport Number"
+// @Success		200				{object}	map[string]string
+// @Failure		400				{object}	map[string]string
+// @Failure		500				{object}	map[string]string
+// @Router			/add_user [post]
+func (d *Delivery) AddUser(c echo.Context) error {
+	passportNumber := c.FormValue("passport_number")
 
-		return c.JSON(http.StatusOK, map[string]string{"status": "User deleted"})
-	})
+	err := d.serv.AddUser(passportNumber)
+	if err != nil {
+		d.logger.Errorf("delivery /add_user error: %s", err)
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to add user"})
+	}
+
+	return c.JSON(http.StatusOK, map[string]string{"status": "User added"})
+}
+
+// @Summary		Edit user details
+// @Description	Edit user details by passport number
+// @Accept			application/x-www-form-urlencoded
+// @Produce		json
+// @Param			passportNumber	formData	string	true	"Passport Number"
+// @Param			surname			formData	string	false	"Surname"
+// @Param			name			formData	string	false	"Name"
+// @Param			patronymic		formData	string	false	"Patronymic"
+// @Param			address			formData	string	false	"Address"
+// @Success		200				{object}	map[string]string
+// @Failure		400				{object}	map[string]string
+// @Failure		500				{object}	map[string]string
+// @Router			/edit_user [post]
+func (d *Delivery) EditUser(c echo.Context) error {
+	user := models.Response_User{
+		PassportNumber: c.FormValue("passport_number"),
+		Surname:        c.FormValue("surname"),
+		Name:           c.FormValue("name"),
+		Patronymic:     c.FormValue("patronymic"),
+		Address:        c.FormValue("address"),
+	}
+	d.logger.Debugf("user data: %v", user)
+	err := d.serv.EditUser(user.PassportNumber, user.Surname, user.Name, user.Patronymic, user.Address)
+	if err != nil {
+		d.logger.Errorf("delivery /edit_user error: %s", err)
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to edit user"})
+	}
+
+	return c.JSON(http.StatusOK, map[string]string{"status": "User updated"})
+}
+
+// @Summary		Delete user
+// @Description	Delete user by passport number
+// @Accept			application/x-www-form-urlencoded
+// @Produce		json
+// @Param			passportNumber	formData	string	true	"Passport Number"
+// @Success		200				{object}	map[string]string
+// @Failure		400				{object}	map[string]string
+// @Failure		500				{object}	map[string]string
+// @Router			/delete_user [post]
+func (d *Delivery) DeleteUser(c echo.Context) error {
+	passportNumber := c.FormValue("passport_number")
+	if passportNumber == "" {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "passportNumber parameter is required"})
+	}
+
+	err := d.serv.RemoveUser(passportNumber)
+	if err != nil {
+		d.logger.Errorf("delivery /delete_user error: %s", err)
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete user"})
+	}
+
+	return c.JSON(http.StatusOK, map[string]string{"status": "User deleted"})
 }

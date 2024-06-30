@@ -1,0 +1,344 @@
+basePath: /
+definitions:
+  models.TaskReport:
+    properties:
+      content:
+        type: string
+      endtime:
+        type: string
+      hours:
+        type: integer
+      minutes:
+        type: integer
+      starttime:
+        type: string
+      taskname:
+        type: string
+    type: object
+  models.User:
+    properties:
+      address:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      passportNumber:
+        type: string
+      patronymic:
+        type: string
+      surname:
+        type: string
+    type: object
+host: localhost:8000
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: This is a time tracker server.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Time Tracker API
+  version: "1.0"
+paths:
+  /add_user:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Add a new user by passport number
+      parameters:
+      - description: Passport Number
+        in: formData
+        name: passportNumber
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Add new user
+  /delete_user:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Delete user by passport number
+      parameters:
+      - description: Passport Number
+        in: formData
+        name: passportNumber
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete user
+  /edit_user:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Edit user details by passport number
+      parameters:
+      - description: Passport Number
+        in: formData
+        name: passportNumber
+        required: true
+        type: string
+      - description: Surname
+        in: formData
+        name: surname
+        type: string
+      - description: Name
+        in: formData
+        name: name
+        type: string
+      - description: Patronymic
+        in: formData
+        name: patronymic
+        type: string
+      - description: Address
+        in: formData
+        name: address
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Edit user details
+  /get_user:
+    get:
+      consumes:
+      - application/json
+      description: Get user tasks for a specified period
+      parameters:
+      - description: Passport Number
+        in: query
+        name: passportNumber
+        required: true
+        type: string
+      - description: Start Date
+        format: date
+        in: query
+        name: startDate
+        required: true
+        type: string
+      - description: End Date
+        format: date
+        in: query
+        name: endDate
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.TaskReport'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get user tasks
+  /get_users:
+    get:
+      consumes:
+      - application/json
+      description: Get all users with optional filters
+      parameters:
+      - description: Passport Number
+        in: query
+        name: passportNumber
+        type: string
+      - description: Surname
+        in: query
+        name: surname
+        type: string
+      - description: Name
+        in: query
+        name: name
+        type: string
+      - description: Patronymic
+        in: query
+        name: patronymic
+        type: string
+      - description: Address
+        in: query
+        name: address
+        type: string
+      - description: Page
+        in: query
+        name: page
+        type: integer
+      - description: Limit
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.User'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get all users
+  /start_user_task:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Start a new task for a user
+      parameters:
+      - description: Passport Number
+        in: formData
+        name: passportNumber
+        required: true
+        type: string
+      - description: Task Name
+        in: formData
+        name: taskName
+        required: true
+        type: string
+      - description: Content
+        in: formData
+        name: content
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Start user task
+  /stop_user_task:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Stop an ongoing task for a user
+      parameters:
+      - description: Passport Number
+        in: formData
+        name: passportNumber
+        required: true
+        type: string
+      - description: Task Name
+        in: formData
+        name: taskName
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Stop user task
+swagger: "2.0"
