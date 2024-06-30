@@ -95,3 +95,74 @@ func (h *SqlHandler) GetUserTaskReport(passportNumber string, startDate, endDate
 	}
 	return taskReports, nil
 }
+
+func (h *SqlHandler) StartUserTask(passportNumber, taskName, content string) error {
+	query := `
+		INSERT INTO tasks (userid, taskname, content, starttime) 
+		SELECT id, $2, $3, $4 FROM users WHERE passportNumber = $1
+	`
+	_, err := h.DB.Exec(context.Background(), query, passportNumber, taskName, content, time.Now())
+	if err != nil {
+		h.elog.Errorf("error repository StartUserTask: %s", err)
+		return err
+	}
+	return nil
+}
+
+func (h *SqlHandler) StopUserTask(passportNumber, taskName string) error {
+	query := `
+		UPDATE tasks
+		SET endtime = $3
+		FROM users
+		WHERE tasks.userid = users.id
+		AND users.passportNumber = $1
+		AND tasks.taskname = $2
+		AND tasks.endtime IS NULL
+	`
+	_, err := h.DB.Exec(context.Background(), query, passportNumber, taskName, time.Now())
+	if err != nil {
+		h.elog.Errorf("error repository StopUserTask: %s", err)
+		return err
+	}
+	return nil
+}
+
+func (h *SqlHandler) AddUser(passportNumber, surname, name, patronymic, address string) error {
+	query := `
+		INSERT INTO users (passportNumber, surname, name, patronymic, address) 
+		VALUES ($1, $2, $3, $4, $5)
+	`
+	_, err := h.DB.Exec(context.Background(), query, passportNumber, surname, name, patronymic, address)
+	if err != nil {
+		h.elog.Errorf("error repository AddUser: %s", err)
+		return err
+	}
+	return nil
+}
+
+func (h *SqlHandler) EditUser(passportNumber, surname, name, patronymic, address string) error {
+	query := `
+		UPDATE users
+		SET surname = $2, name = $3, patronymic = $4, address = $5
+		WHERE passportNumber = $1
+	`
+	_, err := h.DB.Exec(context.Background(), query, passportNumber, surname, name, patronymic, address)
+	if err != nil {
+		h.elog.Errorf("error repository EditUser: %s", err)
+		return err
+	}
+	return nil
+}
+
+func (h *SqlHandler) DeleteUser(passportNumber string) error {
+	query := `
+		DELETE FROM users
+		WHERE passportNumber = $1
+	`
+	_, err := h.DB.Exec(context.Background(), query, passportNumber)
+	if err != nil {
+		h.elog.Errorf("error repository DeleteUser: %s", err)
+		return err
+	}
+	return nil
+}

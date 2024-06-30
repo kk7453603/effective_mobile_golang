@@ -11,6 +11,11 @@ import (
 type Repository interface {
 	GetUsers(query string, args []interface{}) ([]models.User, error)
 	GetUserTaskReport(passportNumber string, startDate time.Time, endDate time.Time) ([]models.TaskReport, error)
+	StartUserTask(passportNumber, taskName, content string) error
+	StopUserTask(passportNumber, taskName string) error
+	AddUser(passportNumber, surname, name, patronymic, address string) error
+	EditUser(passportNumber, surname, name, patronymic, address string) error
+	DeleteUser(passportNumber string) error
 }
 
 type Service struct {
@@ -18,17 +23,14 @@ type Service struct {
 	elog echo.Logger
 }
 
-// AddUser implements delivery.Service.
-func (s *Service) AddUser(passportNumber string) error {
-	return nil
+func (s *Service) AddUser(passportNumber, surname, name, patronymic, address string) error {
+	return s.repo.AddUser(passportNumber, surname, name, patronymic, address)
 }
 
-// EditUser implements delivery.Service.
-func (s *Service) EditUser(passportNumber string) error {
-	return nil
+func (s *Service) EditUser(passportNumber, surname, name, patronymic, address string) error {
+	return s.repo.EditUser(passportNumber, surname, name, patronymic, address)
 }
 
-// GetUserStatus implements delivery.Service.
 func (s *Service) GetUserTaskStatus(passportNumber string, startDate time.Time, endDate time.Time) ([]models.TaskReport, error) {
 	taskReports, err := s.repo.GetUserTaskReport(passportNumber, startDate, endDate)
 	if err != nil {
@@ -38,19 +40,16 @@ func (s *Service) GetUserTaskStatus(passportNumber string, startDate time.Time, 
 	return taskReports, nil
 }
 
-// RemoveUser implements delivery.Service.
 func (s *Service) RemoveUser(passportNumber string) error {
-	return nil
+	return s.repo.DeleteUser(passportNumber)
 }
 
-// StartUserTimer implements delivery.Service.
-func (s *Service) StartUserTimer(passportNumber string) error {
-	return nil
+func (s *Service) StartUserTimer(passportNumber string, taskName, content string) error {
+	return s.repo.StartUserTask(passportNumber, taskName, content)
 }
 
-// StopUserTimer implements delivery.Service.
-func (s *Service) StopUserTimer(passportNumber string) error {
-	return nil
+func (s *Service) StopUserTimer(passportNumber, taskName string) error {
+	return s.repo.StopUserTask(passportNumber, taskName)
 }
 
 func New(rep Repository, loger echo.Logger) *Service {

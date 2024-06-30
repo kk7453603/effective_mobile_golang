@@ -12,11 +12,11 @@ import (
 type Service interface {
 	GetAllUsers(filter map[string]string, limit int, page int) ([]models.User, error)
 	GetUserTaskStatus(passportNumber string, startDate time.Time, endDate time.Time) ([]models.TaskReport, error)
-	StartUserTimer(passportNumber string) error
-	StopUserTimer(passportNumber string) error
+	StartUserTimer(passportNumber string, taskName, content string) error
+	StopUserTimer(passportNumber, taskName string) error
 	RemoveUser(passportNumber string) error
-	EditUser(passportNumber string) error
-	AddUser(passportNumber string) error
+	EditUser(passportNumber, surname, name, patronymic, address string) error
+	AddUser(passportNumber, surname, name, patronymic, address string) error
 }
 
 type Delivery struct {
@@ -40,11 +40,11 @@ func (d *Delivery) InitRoutes(g *echo.Group) {
 		}
 		page, err := strconv.Atoi(c.QueryParam("page"))
 		if err != nil {
-			c.JSON(http.StatusBadRequest, "page value error: "+err.Error())
+			c.JSON(http.StatusBadRequest, map[string]string{"error": "Failed to get page value"})
 		}
 		limit, err := strconv.Atoi(c.QueryParam("limit"))
 		if err != nil {
-			c.JSON(http.StatusBadRequest, "limit value error: "+err.Error())
+			c.JSON(http.StatusBadRequest, map[string]string{"error": "Failed to get limit value"})
 		}
 
 		users, err := d.serv.GetAllUsers(filter, limit, page)
@@ -84,4 +84,38 @@ func (d *Delivery) InitRoutes(g *echo.Group) {
 		d.logger.Debugf("tasks: %v", taskReports)
 		return c.JSONPretty(http.StatusOK, taskReports, "  ")
 	})
+
+	g.POST("/start_user_task", func(c echo.Context) error {
+		passportNumber := c.FormValue("passport_number")
+		taskName := c.FormValue("task_name")
+		content := c.FormValue("content")
+		if passportNumber == "" || taskName == "" || content == "" {
+			return c.JSON(http.StatusBadRequest, map[string]string{"error": "passport_number, task_name, and content are required"})
+		}
+
+		err := d.serv.StartUserTimer(passportNumber, taskName, content)
+		if err != nil {
+			d.logger.Errorf("delivery /start_user_task error: %s", err)
+			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start user task"})
+		}
+
+		return c.JSON(http.StatusOK, map[string]string{"status": "Task started"})
+	})
+
+	g.POST("/stop_user_task", func(c echo.Context) error {
+		passportNumber := c.FormValue("passport_number")
+		taskName := c.FormValue("task_name")
+		if passportNumber == "" || taskName == "" {
+			return c.JSON(http.StatusBadRequest, map[string]string{"error": "passport_number and task_name are required"})
+		}
+
+		err := d.serv.StopUserTimer(passportNumber, taskName)
+		if err != nil {
+			d.logger.Errorf("delivery /stop_user_task error: %s", err)
+			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to stop user task"})
+		}
+
+		return c.JSON(http.StatusOK, map[string]string{"status": "Task stopped"})
+	})
+
 }
