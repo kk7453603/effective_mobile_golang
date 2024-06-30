@@ -1,19 +1,11 @@
 package models
 
-type Mock_Response struct {
-}
-
-type Response_Car struct {
-	RegNum string `json:"regNum,omitempty"`
-	Mark   string `json:"mark,omitempty"`
-	Model  string `json:"model,omitempty"`
-	Year   int    `json:"year ,omitempty"`
-}
-
 type Response_User struct {
-	Name       string `json:"name,omitempty"`
-	Surname    string `json:"surname,omitempty"`
-	Patronymic string `json:"patronymic,omitempty"`
+	PassportNumber string `json:"passport_number" form:"passport_number"`
+	Surname        string `json:"surname" form:"surname"`
+	Name           string `json:"name" form:"name"`
+	Patronymic     string `json:"patronymic" form:"patronymic"`
+	Address        string `json:"address" form:"address"`
 }
 
 type Response_Error struct {
@@ -22,8 +14,4 @@ type Response_Error struct {
 
 type Response_OK struct {
 	Status string `json:"status"`
-}
-
-type Request_Add_Cars struct {
-	RegNums []string `json:"regNums"`
 }

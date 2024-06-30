@@ -13,7 +13,7 @@ type Repository interface {
 	GetUserTaskReport(passportNumber string, startDate time.Time, endDate time.Time) ([]models.TaskReport, error)
 	StartUserTask(passportNumber, taskName, content string) error
 	StopUserTask(passportNumber, taskName string) error
-	AddUser(passportNumber, surname, name, patronymic, address string) error
+	AddUser(passportNumber string) error
 	EditUser(passportNumber, surname, name, patronymic, address string) error
 	DeleteUser(passportNumber string) error
 }
@@ -23,8 +23,8 @@ type Service struct {
 	elog echo.Logger
 }
 
-func (s *Service) AddUser(passportNumber, surname, name, patronymic, address string) error {
-	return s.repo.AddUser(passportNumber, surname, name, patronymic, address)
+func (s *Service) AddUser(passportNumber string) error {
+	return s.repo.AddUser(passportNumber)
 }
 
 func (s *Service) EditUser(passportNumber, surname, name, patronymic, address string) error {

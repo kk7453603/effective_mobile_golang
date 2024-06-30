@@ -16,7 +16,7 @@ type Service interface {
 	StopUserTimer(passportNumber, taskName string) error
 	RemoveUser(passportNumber string) error
 	EditUser(passportNumber, surname, name, patronymic, address string) error
-	AddUser(passportNumber, surname, name, patronymic, address string) error
+	AddUser(passportNumber string) error
 }
 
 type Delivery struct {
@@ -118,4 +118,52 @@ func (d *Delivery) InitRoutes(g *echo.Group) {
 		return c.JSON(http.StatusOK, map[string]string{"status": "Task stopped"})
 	})
 
+	g.POST("/add_user", func(c echo.Context) error {
+		passportNumber := c.FormValue("passport_number")
+
+		err := d.serv.AddUser(passportNumber)
+		if err != nil {
+			d.logger.Errorf("delivery /add_user error: %s", err)
+			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to add user"})
+		}
+
+		return c.JSON(http.StatusOK, map[string]string{"status": "User added"})
+	})
+
+	g.POST("/edit_user", func(c echo.Context) error {
+		user := models.Response_User{
+			PassportNumber: c.FormValue("passport_number"),
+			Surname:        c.FormValue("surname"),
+			Name:           c.FormValue("name"),
+			Patronymic:     c.FormValue("patronymic"),
+			Address:        c.FormValue("address"),
+		}
+		d.logger.Debugf("user data: %v", user)
+		//if err := c.Bind(&user); err != nil {
+		//	return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request payload"})
+		//}
+
+		err := d.serv.EditUser(user.PassportNumber, user.Surname, user.Name, user.Patronymic, user.Address)
+		if err != nil {
+			d.logger.Errorf("delivery /edit_user error: %s", err)
+			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to edit user"})
+		}
+
+		return c.JSON(http.StatusOK, map[string]string{"status": "User updated"})
+	})
+
+	g.POST("/delete_user", func(c echo.Context) error {
+		passportNumber := c.FormValue("passport_number")
+		if passportNumber == "" {
+			return c.JSON(http.StatusBadRequest, map[string]string{"error": "passportNumber parameter is required"})
+		}
+
+		err := d.serv.RemoveUser(passportNumber)
+		if err != nil {
+			d.logger.Errorf("delivery /delete_user error: %s", err)
+			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete user"})
+		}
+
+		return c.JSON(http.StatusOK, map[string]string{"status": "User deleted"})
+	})
 }

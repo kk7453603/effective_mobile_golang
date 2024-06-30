@@ -127,12 +127,12 @@ func (h *SqlHandler) StopUserTask(passportNumber, taskName string) error {
 	return nil
 }
 
-func (h *SqlHandler) AddUser(passportNumber, surname, name, patronymic, address string) error {
+func (h *SqlHandler) AddUser(passportNumber string) error {
 	query := `
-		INSERT INTO users (passportNumber, surname, name, patronymic, address) 
-		VALUES ($1, $2, $3, $4, $5)
+		INSERT INTO users (passportNumber) 
+		VALUES ($1)
 	`
-	_, err := h.DB.Exec(context.Background(), query, passportNumber, surname, name, patronymic, address)
+	_, err := h.DB.Exec(context.Background(), query, passportNumber)
 	if err != nil {
 		h.elog.Errorf("error repository AddUser: %s", err)
 		return err
