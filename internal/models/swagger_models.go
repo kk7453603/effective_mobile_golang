@@ -9,7 +9,7 @@ type Response_User struct {
 }
 
 type Response_Error struct {
-	Message string `json:"message"`
+	Error string `json:"error"`
 }
 
 type Response_OK struct {

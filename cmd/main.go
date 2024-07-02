@@ -1,6 +1,7 @@
 package main
 
 import (
+	"net/http"
 	"os"
 
 	"github.com/joho/godotenv"
@@ -14,20 +15,20 @@ import (
 	echoSwagger "github.com/swaggo/echo-swagger"
 )
 
-// @title Time Tracker API
-// @version 1.0
-// @description This is a time tracker server.
-// @termsOfService http://swagger.io/terms/
+//	@title			Time Tracker API
+//	@version		1.0
+//	@description	This is a time tracker server.
+//	@termsOfService	http://swagger.io/terms/
 
-// @contact.name API Support
-// @contact.url http://www.swagger.io/support
-// @contact.email support@swagger.io
+//	@contact.name	API Support
+//	@contact.url	http://www.swagger.io/support
+//	@contact.email	support@swagger.io
 
-// @license.name Apache 2.0
-// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
+//	@license.name	Apache 2.0
+//	@license.url	http://www.apache.org/licenses/LICENSE-2.0.html
 
-// @host localhost:8000
-// @BasePath /
+// @host		localhost:8000
+// @BasePath	/
 func main() {
 	err := godotenv.Load()
 	if err != nil {
@@ -36,58 +37,44 @@ func main() {
 	e := echo.New()
 	e.Debug = true
 	e.Logger.SetLevel(log.DEBUG)
+	sql_handler := repository.New(e.Logger)
+	sql_handler.Migrate()
+	/*
+		e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
+			Format: "method=${method}, path=${path}, status=${status}, error=\"${error}\"\n",
+		}))
+	*/
 	e.Use(middleware.Logger())
-	e.Use(middleware.Recover())
+	//e.Use(middleware.Recover())
+
 	// Swagger documentation route
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
 
+	// Мок-обработчик для эндпоинта /info
+	e.GET("/info", func(c echo.Context) error {
+		passportSerie := c.QueryParam("passportSerie")
+		passportNumber := c.QueryParam("passportNumber")
+
+		// Пример данных о человеке
+		people := map[string]interface{}{
+			"surname":    "Иванов",
+			"name":       "Иван",
+			"patronymic": "Иванович",
+			"address":    "г. Москва, ул. Ленина, д. 5, кв. 1",
+		}
+
+		// Проверка наличия необходимых параметров
+		if passportSerie == "" || passportNumber == "" {
+			return c.JSON(http.StatusBadRequest, map[string]string{"message": "Missing required parameters"})
+		}
+
+		// Возвращаем данные о человеке
+		return c.JSON(http.StatusOK, people)
+	})
+
 	g := e.Group("")
-	sql_handler := repository.New(e.Logger)
-	sql_handler.Migrate()
 	serv := service.New(sql_handler, e.Logger)
 	deliv := delivery.New(serv, e.Logger)
 	deliv.InitRoutes(g)
-	/*
-		e.GET("/", func(c echo.Context) error {
-			test := "try"
-			sql_handler.AddCar(test)
-			return c.JSON(200, sql_handler.GetAllCars(0))
-		})*/
-	// Mock API
-	/*
-		e.GET("/info", func(c echo.Context) error {
-			regNum := c.QueryParam("regNum")
-			if regNum == "" {
-				return c.JSON(http.StatusBadRequest, "Bad request")
-			}
-
-			car := models.Car{
-				RegNum: regNum,
-				Mark:   "TestMark",
-				Model:  "TestModel",
-				Year:   2022,
-				Owner: models.People{
-					Name:       "John",
-					Surname:    "Doe",
-					Patronymic: "Smith",
-				},
-			}
-
-			return c.JSON(http.StatusOK, car)
-		})
-
-		e.GET("/add", func(c echo.Context) error {
-			regNum := c.QueryParam("regNum")
-			if regNum == "" {
-				return c.JSON(http.StatusBadRequest, "Bad request")
-			}
-			req := httptest.NewRequest(http.MethodGet, "/info?regNum="+regNum, nil)
-			rec := httptest.NewRecorder()
-			e.ServeHTTP(rec, req)
-			res := rec.Body.Bytes()
-			return c.JSONBlob(200, res)
-
-		})
-	*/
 	e.Start(os.Getenv("Service_Url"))
 }

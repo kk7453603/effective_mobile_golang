@@ -47,28 +47,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/models.Response_OK"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/models.Response_Error"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/models.Response_Error"
                         }
                     }
                 }
@@ -97,28 +88,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/models.Response_OK"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/models.Response_Error"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/models.Response_Error"
                         }
                     }
                 }
@@ -171,28 +153,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/models.Response_OK"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/models.Response_Error"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/models.Response_Error"
                         }
                     }
                 }
@@ -220,7 +193,7 @@ const docTemplate = `{
                         "type": "string",
                         "format": "date",
                         "description": "Start Date",
-                        "name": "startDate",
+                        "name": "start_date",
                         "in": "query",
                         "required": true
                     },
@@ -228,7 +201,7 @@ const docTemplate = `{
                         "type": "string",
                         "format": "date",
                         "description": "End Date",
-                        "name": "endDate",
+                        "name": "end_date",
                         "in": "query",
                         "required": true
                     }
@@ -246,19 +219,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/models.Response_Error"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/models.Response_Error"
                         }
                     }
                 }
@@ -331,19 +298,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/models.Response_Error"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/models.Response_Error"
                         }
                     }
                 }
@@ -370,7 +331,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "Task Name",
-                        "name": "taskName",
+                        "name": "task_name",
                         "in": "formData",
                         "required": true
                     },
@@ -386,28 +347,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/models.Response_OK"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/models.Response_Error"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/models.Response_Error"
                         }
                     }
                 }
@@ -434,7 +386,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "Task Name",
-                        "name": "taskName",
+                        "name": "task_name",
                         "in": "formData",
                         "required": true
                     }
@@ -443,28 +395,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/models.Response_OK"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/models.Response_Error"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/models.Response_Error"
                         }
                     }
                 }
@@ -472,6 +415,22 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "models.Response_Error": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.Response_OK": {
+            "type": "object",
+            "properties": {
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
         "models.TaskReport": {
             "type": "object",
             "properties": {

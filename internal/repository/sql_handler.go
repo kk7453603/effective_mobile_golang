@@ -14,6 +14,8 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+var ErrUserNotFound = errors.New("user not found")
+
 type SqlHandler struct {
 	DB   *pgxpool.Pool
 	elog echo.Logger
@@ -96,10 +98,15 @@ func (h *SqlHandler) StartUserTask(passportNumber, taskName, content string) err
 		INSERT INTO tasks (userid, taskname, content, starttime) 
 		SELECT id, $2, $3, $4 FROM users WHERE passportNumber = $1
 	`
-	_, err := h.DB.Exec(context.Background(), query, passportNumber, taskName, content, time.Now())
+	result, err := h.DB.Exec(context.Background(), query, passportNumber, taskName, content, time.Now())
 	if err != nil {
 		h.elog.Errorf("error repository StartUserTask: %s", err)
 		return err
+	}
+	rowsAffected := result.RowsAffected()
+	if rowsAffected == 0 {
+		h.elog.Error("error repository: failed to start task")
+		return errors.New("failed to start task")
 	}
 	return nil
 }
@@ -114,23 +121,39 @@ func (h *SqlHandler) StopUserTask(passportNumber, taskName string) error {
 		AND tasks.taskname = $2
 		AND tasks.endtime IS NULL
 	`
-	_, err := h.DB.Exec(context.Background(), query, passportNumber, taskName, time.Now())
+	result, err := h.DB.Exec(context.Background(), query, passportNumber, taskName, time.Now())
 	if err != nil {
 		h.elog.Errorf("error repository StopUserTask: %s", err)
 		return err
 	}
+	rowsAffected := result.RowsAffected()
+	if rowsAffected == 0 {
+		h.elog.Error("failed to stop task")
+		return errors.New("failed to stop task")
+	}
 	return nil
 }
 
-func (h *SqlHandler) AddUser(passportNumber string) error {
+func (h *SqlHandler) AddUser(user models.User) error {
+
+	var existingPassportNumber string
+	row := h.DB.QueryRow(context.Background(), "SELECT passportNumber FROM users WHERE passportNumber = $1", user.PassportNumber)
+	row.Scan(&existingPassportNumber)
+
+	h.elog.Debugf("passcheck: %s", existingPassportNumber)
+	if existingPassportNumber != "" {
+		h.elog.Errorf("user with passport number %s already exists", user.PassportNumber)
+		return errors.New("user with this passport number already exists")
+	}
+
 	query := `
-		INSERT INTO users (passportNumber) 
-		VALUES ($1)
+		INSERT INTO users (passportNumber,surname,name,patronymic,address) 
+		VALUES ($1,$2,$3,$4,$5)
 	`
-	_, err := h.DB.Exec(context.Background(), query, passportNumber)
+	_, err := h.DB.Exec(context.Background(), query, user.PassportNumber, user.Surname, user.Name, user.Patronymic, user.Address)
 	if err != nil {
 		h.elog.Errorf("error repository AddUser: %s", err)
-		return err
+		return errors.New("failed to add user")
 	}
 	return nil
 }
@@ -141,23 +164,49 @@ func (h *SqlHandler) EditUser(passportNumber, surname, name, patronymic, address
 		SET surname = $2, name = $3, patronymic = $4, address = $5
 		WHERE passportNumber = $1
 	`
-	_, err := h.DB.Exec(context.Background(), query, passportNumber, surname, name, patronymic, address)
+	result, err := h.DB.Exec(context.Background(), query, passportNumber, surname, name, patronymic, address)
 	if err != nil {
 		h.elog.Errorf("error repository EditUser: %s", err)
 		return err
 	}
+
+	rowsAffected := result.RowsAffected()
+	if rowsAffected == 0 {
+		h.elog.Error("error repository: user not found")
+		return errors.New("user not found")
+	}
+
 	return nil
 }
 
 func (h *SqlHandler) DeleteUser(passportNumber string) error {
-	query := `
-		DELETE FROM users
+
+	checkQuery := `
+		SELECT COUNT(*) FROM users
 		WHERE passportNumber = $1
 	`
-	_, err := h.DB.Exec(context.Background(), query, passportNumber)
+	var count int
+	err := h.DB.QueryRow(context.Background(), checkQuery, passportNumber).Scan(&count)
+	if err != nil {
+		h.elog.Errorf("error repository DeleteUser check existence: %s", err)
+		return err
+	}
+
+	if count == 0 {
+		h.elog.Error("error repository: user not found")
+		return ErrUserNotFound
+	}
+
+	query := `
+		DELETE FROM users	
+		WHERE passportNumber = $1
+	`
+	_, err = h.DB.Exec(context.Background(), query, passportNumber)
 	if err != nil {
 		h.elog.Errorf("error repository DeleteUser: %s", err)
 		return err
 	}
+
+	h.elog.Debugf("repository DeleteUser: user with passport number %s deleted", passportNumber)
 	return nil
 }

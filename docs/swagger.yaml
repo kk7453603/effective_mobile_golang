@@ -1,5 +1,15 @@
 basePath: /
 definitions:
+  models.Response_Error:
+    properties:
+      error:
+        type: string
+    type: object
+  models.Response_OK:
+    properties:
+      status:
+        type: string
+    type: object
   models.TaskReport:
     properties:
       content:
@@ -61,21 +71,15 @@ paths:
         "200":
           description: OK
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/models.Response_OK'
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/models.Response_Error'
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/models.Response_Error'
       summary: Add new user
   /delete_user:
     post:
@@ -94,21 +98,15 @@ paths:
         "200":
           description: OK
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/models.Response_OK'
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/models.Response_Error'
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/models.Response_Error'
       summary: Delete user
   /edit_user:
     post:
@@ -143,21 +141,15 @@ paths:
         "200":
           description: OK
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/models.Response_OK'
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/models.Response_Error'
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/models.Response_Error'
       summary: Edit user details
   /get_user:
     get:
@@ -173,13 +165,13 @@ paths:
       - description: Start Date
         format: date
         in: query
-        name: startDate
+        name: start_date
         required: true
         type: string
       - description: End Date
         format: date
         in: query
-        name: endDate
+        name: end_date
         required: true
         type: string
       produces:
@@ -194,15 +186,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/models.Response_Error'
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/models.Response_Error'
       summary: Get user tasks
   /get_users:
     get:
@@ -250,15 +238,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/models.Response_Error'
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/models.Response_Error'
       summary: Get all users
   /start_user_task:
     post:
@@ -273,7 +257,7 @@ paths:
         type: string
       - description: Task Name
         in: formData
-        name: taskName
+        name: task_name
         required: true
         type: string
       - description: Content
@@ -287,21 +271,15 @@ paths:
         "200":
           description: OK
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/models.Response_OK'
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/models.Response_Error'
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/models.Response_Error'
       summary: Start user task
   /stop_user_task:
     post:
@@ -316,7 +294,7 @@ paths:
         type: string
       - description: Task Name
         in: formData
-        name: taskName
+        name: task_name
         required: true
         type: string
       produces:
@@ -325,20 +303,14 @@ paths:
         "200":
           description: OK
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/models.Response_OK'
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/models.Response_Error'
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/models.Response_Error'
       summary: Stop user task
 swagger: "2.0"
