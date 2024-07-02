@@ -35,15 +35,16 @@ func main() {
 		log.Fatalf("godotenv error: %v", err)
 	}
 	e := echo.New()
-	e.Debug = true
-	e.Logger.SetLevel(log.DEBUG)
+	e.Logger.Info("Переменные среды загружены")
+	if os.Getenv("DEBUG") == "on" {
+		e.Debug = true
+		e.Logger.SetLevel(log.DEBUG)
+		e.Logger.Info("DEBUG режим включен")
+	}
+
 	sql_handler := repository.New(e.Logger)
 	sql_handler.Migrate()
-	/*
-		e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
-			Format: "method=${method}, path=${path}, status=${status}, error=\"${error}\"\n",
-		}))
-	*/
+
 	e.Use(middleware.Logger())
 	//e.Use(middleware.Recover())
 
@@ -76,5 +77,8 @@ func main() {
 	serv := service.New(sql_handler, e.Logger)
 	deliv := delivery.New(serv, e.Logger)
 	deliv.InitRoutes(g)
-	e.Start(os.Getenv("Service_Url"))
+
+	if err = e.Start(os.Getenv("Service_Url")); err != nil {
+		e.Logger.Fatalf("Ошибка запуска сервера: %v", err)
+	}
 }

@@ -41,6 +41,7 @@ func (h *SqlHandler) Migrate() {
 	if err := m.Up(); err != nil && errors.Is(err, errors.New("migration error: no change")) {
 		h.elog.Errorf("migration error: %v", err)
 	}
+	h.elog.Info("Миграции выполнены")
 }
 
 func (h *SqlHandler) GetUsers(query string, args []interface{}) ([]models.User, error) {
