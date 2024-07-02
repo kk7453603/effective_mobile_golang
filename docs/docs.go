@@ -171,7 +171,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/get_user": {
+        "/get_user_tasks": {
             "get": {
                 "description": "Get user tasks for a specified period",
                 "consumes": [

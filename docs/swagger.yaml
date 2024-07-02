@@ -151,7 +151,7 @@ paths:
           schema:
             $ref: '#/definitions/models.Response_Error'
       summary: Edit user details
-  /get_user:
+  /get_user_tasks:
     get:
       consumes:
       - application/json

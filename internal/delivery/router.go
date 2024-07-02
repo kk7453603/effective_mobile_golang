@@ -120,7 +120,7 @@ func (d *Delivery) GetUsers(c echo.Context) error {
 // @Success		200				{array}		models.TaskReport
 // @Failure		400				{object}	models.Response_Error
 // @Failure		500				{object}	models.Response_Error
-// @Router			/get_user [get]
+// @Router			/get_user_tasks [get]
 func (d *Delivery) GetUserTasks(c echo.Context) error {
 	passportNumber := c.QueryParam("passportNumber")
 
@@ -210,7 +210,7 @@ func (d *Delivery) StopUserTask(c echo.Context) error {
 	err := d.serv.StopUserTimer(passportNumber, taskName)
 	if err != nil {
 		d.logger.Errorf("delivery /stop_user_task error: %s", err)
-		return c.JSON(http.StatusInternalServerError, models.Response_Error{Error: "Failed to stop user task"})
+		return c.JSON(http.StatusInternalServerError, models.Response_Error{Error: err.Error()})
 	}
 
 	return c.JSON(http.StatusOK, models.Response_OK{Status: "Task stopped"})

@@ -12,7 +12,6 @@ type Task struct {
 }
 
 type User struct {
-	ID             int    `json:"id"`
 	PassportNumber string `json:"passportNumber"`
 	Surname        string `json:"surname"`
 	Name           string `json:"name"`

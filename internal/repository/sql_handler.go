@@ -15,6 +15,7 @@ import (
 )
 
 var ErrUserNotFound = errors.New("user not found")
+var ErrFailedToStopTask = errors.New("failed to stop task")
 
 type SqlHandler struct {
 	DB   *pgxpool.Pool
@@ -53,7 +54,7 @@ func (h *SqlHandler) GetUsers(query string, args []interface{}) ([]models.User, 
 	users := []models.User{}
 	for rows.Next() {
 		var user models.User
-		if err := rows.Scan(&user.ID, &user.PassportNumber, &user.Surname, &user.Name, &user.Patronymic, &user.Address); err != nil {
+		if err := rows.Scan(&user.PassportNumber, &user.Surname, &user.Name, &user.Patronymic, &user.Address); err != nil {
 			h.elog.Errorf("error repository GetUsers: %s", err)
 			return nil, err
 		}
@@ -121,15 +122,10 @@ func (h *SqlHandler) StopUserTask(passportNumber, taskName string) error {
 		AND tasks.taskname = $2
 		AND tasks.endtime IS NULL
 	`
-	result, err := h.DB.Exec(context.Background(), query, passportNumber, taskName, time.Now())
+	_, err := h.DB.Exec(context.Background(), query, passportNumber, taskName, time.Now())
 	if err != nil {
 		h.elog.Errorf("error repository StopUserTask: %s", err)
 		return err
-	}
-	rowsAffected := result.RowsAffected()
-	if rowsAffected == 0 {
-		h.elog.Error("failed to stop task")
-		return errors.New("failed to stop task")
 	}
 	return nil
 }

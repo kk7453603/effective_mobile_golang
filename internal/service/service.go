@@ -61,7 +61,7 @@ func (s *Service) GetAllUsers(filter map[string]string, limit int, page int) ([]
 		limit = 10
 	}
 	offset := (page - 1) * limit
-	query := "SELECT id, passportNumber, surname, name, patronymic, address FROM users WHERE 1=1"
+	query := "SELECT passportNumber, surname, name, patronymic, address FROM users WHERE 1=1"
 	args := []interface{}{}
 	argID := 1
 	for k, v := range filter {
