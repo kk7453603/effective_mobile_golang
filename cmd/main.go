@@ -78,7 +78,10 @@ func main() {
 	deliv := delivery.New(serv, e.Logger)
 	deliv.InitRoutes(g)
 
+	e.Logger.Infof("service starts on: %s", e.Server.Addr)
+
 	if err = e.Start(os.Getenv("Service_Url")); err != nil {
 		e.Logger.Fatalf("Ошибка запуска сервера: %v", err)
 	}
+	e.Logger.Info("service start")
 }

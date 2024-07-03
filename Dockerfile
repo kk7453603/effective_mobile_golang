@@ -1,24 +1,12 @@
-FROM golang:1.22.2 AS builder
+FROM golang:1.22.4
 
 WORKDIR /app
 
-COPY go.mod go.sum ./
+COPY . /app
 
-RUN go mod download
-
-COPY . .
-
-RUN go build -o main ./cmd
-
-FROM alpine:latest
-
-WORKDIR /root/
-
-COPY --from=builder /app/main .
-
-COPY --from=builder /app/.env .
+RUN go build -o ./bin/main ./cmd/main.go
 
 EXPOSE ${Docker_Port}
 
-CMD ["./main"]
+CMD ["/app/bin/main"]
 
