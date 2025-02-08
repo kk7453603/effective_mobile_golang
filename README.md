@@ -91,6 +91,10 @@
 ### Helm charts (Автоматическая установка в кластере kubernetes):
 
 1) Установить helm
+2) Установить себе ingress-controller
+```bash
+helm install ingress-nginx ingress-nginx/ingress-nginx --namespace default --create-namespace
+```
 
 2) Для установки
 ```bash
