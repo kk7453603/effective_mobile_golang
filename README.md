@@ -85,3 +85,18 @@
     - ``go run /cmd/main.go``
 3) Сборка исполняемого файла:
     - ``go build -o time-tracker ./cmd``
+
+
+
+### Helm charts (Автоматическая установка в кластере kubernetes):
+
+1) Установить helm
+
+2) Для установки
+```bash
+helm install myapp ./myapp --namespace default
+```
+3) Для удаления
+```bash
+helm delete myapp
+```
