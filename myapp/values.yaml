@@ -1,0 +1,49 @@
+replicaCount: 2
+
+image:
+  repository: effective_go_app
+  tag: "v1.0.0"
+  pullPolicy: IfNotPresent
+
+service:
+  name: myapp-service
+  type: NodePort
+  port: 8000
+  nodePort: 30007
+
+ingress:
+  enabled: true
+  ingressClassName: nginx
+  hostname: myapp.local
+  path: /
+  pathType: Prefix
+  tls:
+    enabled: true
+    secretName: tls
+  annotations: {}
+
+tls:
+  # Здесь можно оставить пустые значения, так как секрет мы создадим из файла
+  crt: ""
+  key: ""
+
+postgres:
+  enabled: true
+  image:
+    repository: postgres
+    tag: "16"
+  env:
+    POSTGRES_USER: "postgres"
+    POSTGRES_PASSWORD: "test"
+    POSTGRES_DB: "time_tracker"
+  service:
+    port: 5432
+
+serviceAccount:
+  create: false
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
