@@ -15,7 +15,7 @@
         },
         "version": "1.0"
     },
-    "host": "localhost:8000",
+    "host": "myapp.local",
     "basePath": "/",
     "paths": {
         "/add_user": {
@@ -453,9 +453,6 @@
             "properties": {
                 "address": {
                     "type": "string"
-                },
-                "id": {
-                    "type": "integer"
                 },
                 "name": {
                     "type": "string"

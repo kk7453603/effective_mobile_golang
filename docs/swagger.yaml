@@ -29,8 +29,6 @@ definitions:
     properties:
       address:
         type: string
-      id:
-        type: integer
       name:
         type: string
       passportNumber:
@@ -40,7 +38,7 @@ definitions:
       surname:
         type: string
     type: object
-host: localhost:8000
+host: myapp.local
 info:
   contact:
     email: support@swagger.io
